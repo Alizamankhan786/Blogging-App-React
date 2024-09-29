@@ -107,7 +107,7 @@ const Dashboard = () => {
     <h1 className='text-center font-bold'>My Blogs</h1>
     {load ? (
       <h2 className="text-center mt-3">Loading...</h2>
-    ): dataCard.length !==0 ? (
+    ): dataCard.length > 0 ? (
       dataCard.map((item , index) => {
         return(
           <div key={index} className="mt-5">

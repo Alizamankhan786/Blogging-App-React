@@ -1,6 +1,6 @@
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import {  useNavigate } from 'react-router-dom'
 import { auth, db } from '../config/firebase/firebaseconfig';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 
@@ -20,9 +20,6 @@ function Navbar() {
 
     const querySnapshot = await getDocs(q);
     querySnapshot.forEach((doc) => {
-
-      const image = 
-      "https://cdn.pixabay.com/photo/2016/11/18/21/30/bike-1836962_960_720.jpg"
 
       const userProfile = doc.data().profile;
 
@@ -92,16 +89,7 @@ function Navbar() {
                 className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
               >
                 <li>
-                  <a className="justify-between">
-                    Profile
-                    <span className="badge">New</span>
-                  </a>
-                </li>
-                <li>
-                  <p>Settings</p>
-                </li>
-                <li>
-                  <p onClick={logoutButton}>Logout</p>
+                  <p className='text-white' onClick={logoutButton}>Logout</p>
                 </li>
               </ul>
             </div>
@@ -115,7 +103,6 @@ function Navbar() {
         )}
       </div>
     </div>
-    <Link to="/dashboard">Go to Dashboard</Link>
   </>
 );
 }
