@@ -1,172 +1,116 @@
-import { onAuthStateChanged } from 'firebase/auth';
-import React, { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { auth, db } from '../config/firebase/firebaseconfig';
-import { addDoc, collection, getDocs, query, where , deleteDoc, doc, updateDoc } from 'firebase/firestore';
-import Card from '../Components/Card';
-import Alert from '../Components/Alert';
-
-const Dashboard = () => {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
+import { onAuthStateChanged } from "firebase/auth"
+import { collection, getDocs, query, where } from "firebase/firestore"
+import { useEffect, useRef, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { auth, db } from "../config/firebase/firebaseconfig"
+import { getData } from "../config/firebase/firebasemethods"
+import Post from "../Components/Post";
 
 
-  const currentDate = new Date();
-  const month = currentDate.toLocaleString("default", { month: "long" });
-  const date = currentDate.getDate();
-  const year = currentDate.getFullYear();
+const Dashbord = () => {
 
-  const blogDate = `${month} , ${date}, ${year}`;
+  let navigate = useNavigate()
 
-  const [cardData, setCardData] = useState([]);
+  let titleRef = useRef()
+  let articleRef = useRef()
+
+  const [blogs, setBlogs] = useState([])
+  const [SingalUserData, setSingalUserData] = useState([])
 
   useEffect(() => {
     onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const uid = user.uid;
-        const q = query(collection(db, "userblogs"), where("uid", "==", uid));
+        console.log(user.uid)
+        const q = query(collection(db, "users"), where("id", "==", user.uid));
         const querySnapshot = await getDocs(q);
-        const newData = querySnapshot.docs.map((doc) => ({...doc.data() , id: doc.id}));
-        setCardData(newData);
+        querySnapshot.forEach((doc) => {
+          console.log(doc.data());
+          setSingalUserData(doc.data())
+        });
+        const blogsData = await getData("blogs", user.uid)
+        console.log(blogsData)
+        setBlogs([...blogsData])
       }
-    });
-  }, []);
+    })
+  }, [])
 
-  const userBlog = (data) => {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const uid = user.uid;
+  const sendDataFromFireStore = async (event) => {
+    event.preventDefault()
+    if (titleRef.current.value === '' || articleRef.current.value === '') {
+      alert('please check it!')
+    } else {
+      console.log(titleRef.current.value);
+      console.log(articleRef.current.value);
+      blogs.push({
+        title: titleRef.current.value.toUpperCase(),
+        article: articleRef.current.value.toUpperCase(),
+        uid: auth.currentUser.uid
+      })
+      setBlogs([...blogs])
+      const sendBlogs = await sendData({
+        title: titleRef.current.value.toUpperCase(),
+        article: articleRef.current.value.toUpperCase(),
+        uid: auth.currentUser.uid
+      }, "blogs")
 
-        const getUserImageName = async () => {
-          const q = query(collection(db, "user"), where("uid", "==", uid));
-
-         
-
-          const querySnapshot = await getDocs(q);
-          querySnapshot.forEach((doc) => {
-            const setUserBlogInFirestore = async () => {
-              const docRef = await addDoc(collection(db, "userblogs"), {
-                title: data.title,
-                description: data.description,
-                image: doc.data().profile,
-                userName: doc.data().userName,
-                date: blogDate,
-                uid: uid,
-                
-              });
-              console.log("Document written with ID: ", docRef.id);
-
-              <Alert />
-
-            };
-
-            setUserBlogInFirestore();
-
-            const getData = async () => {
-              const q = query(
-                collection(db, "userblogs"),
-                where("uid", "==", uid)
-              );
-
-              const querySnapshot = await getDocs(q);
-              const newData = querySnapshot.docs.map((doc) => doc.data());
-              setCardData(newData);
-              console.log(cardData);
-            };
-
-            getData();
-          });
-        };
-
-        getUserImageName();
-      }
-    });
-  };
-
-
-  const deleteBtn = async (index) => {
-    console.log('delete button clicked!', index);
-    console.log(cardData[index]);
-
-    const deleteData = async() => {
-      await deleteDoc(doc(db, "userblogs", cardData[index].id ));
+      console.log(sendBlogs);
+      titleRef.current.value = ''
+      articleRef.current.value = ''
     }
+  }
+  
 
-    deleteData();
-  };
+
 
   return (
-    <form onSubmit={handleSubmit(userBlog)}>
-      <div
-        style={{
-          marginTop: "-7%",
-        }}
-        className="flex justify-center items-center min-h-screen bg-gray-100"
-      >
-        <div className="w-full max-w-lg bg-white rounded-lg shadow-lg p-8">
-          <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
-          <div className="mb-4">
-            <input
-              className="text-white w-full px-4 py-2 border-2 border-purple-300 rounded focus:outline-none focus:border-purple-500"
-              type="text"
-              {...register("title", { required: true })}
-              placeholder="Title"
-            />
-            <br />
-            {errors.title && (
-              <span className="text-red-600">Title is required</span>
-            )}
-          </div>
-          <div className="mb-4">
-            <textarea
-              className="text-white w-full px-4 py-2 border-2 border-gray-300 rounded focus:outline-none focus:border-purple-500"
-              rows="4"
-              {...register("description", { required: true })}
-              placeholder="What is in your mind?"
-            />
-            <br />
-            {errors.description && (
-              <span className="text-red-600">Description is required</span>
-            )}
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-purple-500 text-white py-2 rounded hover:bg-purple-600"
+    <form>
+          <div
+            style={{
+              marginTop: "-7%",
+            }}
+            className="flex justify-center items-center min-h-screen bg-gray-100"
           >
-            Publish blog
-          </button>
-        </div>
-      </div>
-
-      <h1 className="text-center font-bold">My Blogs</h1>
-      {cardData.length !== 0 ? (
-        cardData.map((item, index) => (
-          <div key={index} className="mt-5">
-            <Card
-              title={item.title}
-              description={item.description}
-              image={item.image}
-              username={item.userName}
-              date={item.date}
-              editBtn={"Edit"}
-              deleteBtn={"Delete"}
-
-
-              onDeleteBtn={() => deleteBtn(index)}
-              onEditBtn={() => editBtn(index)}
-            />
+            <div className="w-full max-w-lg bg-white rounded-lg shadow-lg p-8">
+              <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+              <div className="mb-4">
+                <input
+                ref={titleRef}
+                  className="text-white w-full px-4 py-2 border-2 border-purple-300 rounded focus:outline-none focus:border-purple-500"
+                  type="text"
+                  placeholder="Title"
+                />
+                <br />
+              </div>
+              <div className="mb-4">
+                <textarea
+                ref={articleRef} 
+                className="text-white w-full px-4 py-2 border-2 border-gray-300 rounded focus:outline-none focus:border-purple-500"
+                rows="4"
+                  placeholder="What is in your mind?"
+                />
+                <br />
+              </div>
+              <button
+              onClick={sendDataFromFireStore}
+                type="submit"
+                className="w-full bg-purple text-white py-2 rounded"
+              >
+                Publish blog
+              </button>
+            </div>
           </div>
-        ))
-      ) : (
-        <div className="text-center m-[20vh]">
-          <span className="loading loading-spinner text-warning loading-lg"></span>
+    
+          <h1 className="text-center font-bold">My Blogs</h1>
+          <div className='mt-4 flex flex-col flex-wrap gap-3'>
+             {blogs.length > 0 ? blogs.map((item, index) => (
+               <Post user={SingalUserData} key={index} blogs={item} />
+             )) : <div className="text-center my-10">
+             <span className="loading loading-spinner text-warning loading-lg"></span>
+           </div>}
         </div>
-      )}
-    </form>
-  );
-};
 
-export default Dashboard;
+        </form>
+  )
+}
+
+export default Dashbord;
