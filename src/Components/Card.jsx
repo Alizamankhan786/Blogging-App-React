@@ -1,7 +1,6 @@
-// Card.jsx
 import React from 'react';
 
- export const Card = ({image , title , username , date , description , btn1 , btn2}) => {
+ export const Card = ({image , title , username , date , description , onButtonClick , editBtn , deleteBtn , button , onEditBtn , onDeleteBtn}) => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="bg-white shadow-lg rounded-lg p-6 max-w-md w-full">
@@ -21,8 +20,9 @@ import React from 'react';
         </div>
         <p className="text-gray-700 mb-4">{description}</p>
         <div className="flex justify-end space-x-2">
-          <button className="text-blue-500 hover:underline">{btn1}</button>
-          <button className="text-blue-500 hover:underline">{btn2}</button>
+        <button onClick={onButtonClick} className="text-primary">{button}</button>
+        <button onClick={onEditBtn} className="pl-6 text-primary">{editBtn}</button>
+        <button onClick={onDeleteBtn} className="pl-6 text-primary">{deleteBtn}</button>
         </div>
       </div>
     </div>

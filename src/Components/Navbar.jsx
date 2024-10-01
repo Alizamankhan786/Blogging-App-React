@@ -1,60 +1,55 @@
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import React, { useState } from 'react'
-import {  useNavigate } from 'react-router-dom'
+import React, { useEffect, useState } from 'react'
+import {  Link, useNavigate } from 'react-router-dom'
 import { auth, db } from '../config/firebase/firebaseconfig';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 
 function Navbar() {
 
-  // NAVIGATE
-
   const navigate = useNavigate();
-  
-  const [isLoggedIn , setisLoggedIn] = useState(null);
-
-  const [data , setData] = useState(null);
+  const [isloggedIn, setisloggedIn] = useState(false);
+  const [userData, setUserData] = useState(null);
 
 
   const getData = async (user) => {
     const q = query(collection(db, "user"), where("uid", "==", user.uid));
-
     const querySnapshot = await getDocs(q);
     querySnapshot.forEach((doc) => {
-
-      const userProfile = doc.data().profile;
-
-      setData(userProfile);
-
+      const profile = doc.data().profile;
+      setUserData(profile);
     });
   };
 
-  {
-    onAuthStateChanged(auth , (user) => {
-      if(user){
-        const uid = user.uid;
-        setisLoggedIn(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setisloggedIn(true);
         getData(user);
-
-        return;
-      };
+      } else {
+        setisloggedIn(false);
+      }
     });
+
+
+    return () => unsubscribe();
+  }, []);
+
+  // Login button functionality
+  const loginButton = () => {
+    navigate("/login");
   };
 
-
-  const loginButton = () => {
-    navigate("/login")
-  }
-
-
-  const logoutButton = () => {
+  
+  const logoutBtn = () => {
     signOut(auth)
-    .then(() => {
-      setisLoggedIn(false);
-      alert("LogOut SuccessFuly");
-    })
-    .catch((error) => {
-      alert(error);
-    });
+      .then(() => {
+        setisloggedIn(false);
+        alert("Logout successfully!");
+      })
+      .catch((error) => {
+        alert(error.message);
+      });
   };
 
   return (
@@ -62,15 +57,15 @@ function Navbar() {
     <div style={{
       backgroundColor: "purple"
     }} className="navbar">
-      <div className="flex-1">
-        <a className="btn btn-ghost text-xl text-white">
+      <span className="flex-1">
+        <Link to="/" className="btn btn-ghost text-xl text-white">
           Personal Blogging App
-        </a>
-      </div>
+        </Link>
+      </span>
 
       <div className="flex-none">
-        {isLoggedIn ? (
-          <div className="flex-none">
+        {isloggedIn ? (
+          <nav className="flex-none">
             <div className="dropdown dropdown-end">
               <div
                 tabIndex={0}
@@ -78,10 +73,7 @@ function Navbar() {
                 className="btn btn-ghost btn-circle avatar"
               >
                 <div className="w-10 rounded-full">
-                  <img
-                    alt="Tailwind CSS Navbar component"
-                    src={data}
-                  />
+                  <img alt="User Profile" src={userData} />
                 </div>
               </div>
               <ul
@@ -89,15 +81,28 @@ function Navbar() {
                 className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
               >
                 <li>
-                  <p className='text-white' onClick={logoutButton}>Logout</p>
+                  <Link to="/profile" className="justify-between">
+                    Profile
+                    <span className="badge">New</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/dashboard">Dashboard</Link>
+                </li>
+                <li>
+                  <Link to="/">Home</Link>
+                </li>
+                <li>
+                  <p className='text-white' onClick={logoutBtn}>Logout</p>
                 </li>
               </ul>
             </div>
-          </div>
+          </nav>
         ) : (
           <button style={{
-            backgroundColor: "purple"
-          }} onClick={loginButton}>
+            backgroundColor: "purple",
+            color: "white",
+          }} className="btn" onClick={loginButton}>
             LOGIN
           </button>
         )}

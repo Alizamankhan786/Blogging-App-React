@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom';
 import { auth, storage } from '../config/firebase/firebaseconfig';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { ref, uploadBytes } from 'firebase/storage';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 
 function Register() {
 
@@ -27,24 +27,47 @@ function Register() {
         const user = userCredential.user;
 
         
-        const profile = data.userProfile[0];          
+        const profile = data.userProfile[0];    
+        
+        const UserProfileStorageRef = ref(storage, data.userProfile[0].name);
 
         const userAdded =  () => {
 
           console.log(data);
            
           uploadBytes(UserProfileStorageRef, profile)
-          .then((snapshot) => {
-            console.log("Blog Uploaded");
-          })
-          .catch((err) => {
-            console.log('File upload error ===>' , err);
-            
-          })
-           
+            .then((snapshot) => {
+              console.log("Uploaded a blob or file!");
+
+              getDownloadURL(UserProfileStorageRef)
+                .then((url) => {
+                  console.log("URL ==>", url);
+
+                  const setDataInFirebase = async () => {
+                    const docRef = await addDoc(collection(db, "user"), {
+                      userName: data.username,
+                      email: data.email,
+                      uid: user.uid,
+                      profile: url,
+                    });
+                    console.log("Document written with ID: ", docRef.id);
+                  };
+
+                  setDataInFirebase();
+                })
+                .catch((error) => {
+                  console.log(error);
+                });
+            })
+            .catch((err) => {
+              console.log("File upload error ===>", err);
+            });
         };
-        userAdded();
-    
+        UserAddedtoFirestore();
+
+        alert("You have sucessfully Registered!");
+
+        navigate("/");
       })
       .catch((error) => {
         const errorMessage = error.message;

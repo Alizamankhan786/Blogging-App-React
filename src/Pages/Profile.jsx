@@ -86,7 +86,6 @@ const Profile = () => {
               accept="image/*"
               onChange={handleImageChange}
               className="hidden"
-              required = ""
             />
           </div>
           <div className="flex items-center mt-4">
@@ -135,7 +134,7 @@ const Profile = () => {
           <label className="block text-sm font-medium text-gray-700">Old Password</label>
           <input
             type="password"
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+            className="mt-1 block w-full px-3 py-2 border text-white border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
             placeholder="Old password"
             value={passwords.oldPassword}
             onChange={(e) => setPasswords({ ...passwords, oldPassword: e.target.value })}
@@ -143,7 +142,7 @@ const Profile = () => {
           <label className="block mt-4 text-sm font-medium text-gray-700">New Password</label>
           <input
             type="password"
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+            className="text-white mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
             placeholder="New password"
             value={passwords.newPassword}
             onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
@@ -151,7 +150,7 @@ const Profile = () => {
           <label className="block mt-4 text-sm font-medium text-gray-700">Repeat Password</label>
           <input
             type="password"
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+            className="text-white mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
             placeholder="Repeat password"
             value={passwords.repeatPassword}
             onChange={(e) => setPasswords({ ...passwords, repeatPassword: e.target.value })}

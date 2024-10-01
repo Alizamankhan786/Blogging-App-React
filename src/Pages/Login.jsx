@@ -19,8 +19,6 @@ const Login = () => {
 
   const LoginUserFromFirebase = (data) => {
 
-    // login user from firebase
-
     signInWithEmailAndPassword(auth, data.email, data.password)
   .then((userCredential) => {
     const user = userCredential.user;

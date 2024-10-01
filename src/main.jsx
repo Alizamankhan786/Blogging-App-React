@@ -23,23 +23,23 @@ const router = createBrowserRouter([
         element: <Home />,
       },
       {
-        path: `login`,
+        path: `/login`,
         element: <Login />,
       },
       {
-        path: `register`,
+        path: `/register`,
         element: <Register />,
       },
       {
-        path: `dashboard`,
+        path: `/dashboard`,
         element: <ProtectedRoutes component={<Dashboard />} />,
       },
       {
-        path: `profile`,
+        path: `/profile`,
         element:<ProtectedRoutes component={<Profile />} />
       },
       {
-        path: `singleuser`,
+        path: `/singleuser`,
         element: <ProtectedRoutes component={<Singleuser/>}/>,
       },
     ]
