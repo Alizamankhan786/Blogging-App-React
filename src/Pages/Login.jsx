@@ -1,49 +1,59 @@
-import React from 'react'
+import React, { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom'
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from '../config/firebase/firebaseconfig';
 import { collection, getDocs, query, where } from 'firebase/firestore';
+import Swal from 'sweetalert2'
+import { loginUser } from '../config/firebase/firebasemethods'
 
 const Login = () => {
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm()
+  const email = useRef()
+  const password = useRef()
+  const navigate = useNavigate()
 
-  // NAVIGATE
+  const [loading, setloading] = useState(false)
 
-  const navigate = useNavigate();
+  const loginUserFunc = async (event) => {
+      setloading(true)
+      event.preventDefault()
+      console.log(email.current.value);
+      console.log(password.current.value);
 
-  const LoginUserFromFirebase = (data) => {
-
-    signInWithEmailAndPassword(auth, data.email, data.password)
-  .then((userCredential) => {
-    const user = userCredential.user;
-    console.log(user);
-    
-
-    const getData = async () => {
-      const q = query(collection(db, "user"), where("uid", "==", user.uid));
-      
-const querySnapshot = await getDocs(q);
-querySnapshot.forEach((doc) => {
-  console.log(doc.id, " => ", doc.data());
-  navigate('/')
-});
-
-  };
-
-  getData();
-
-  })
-  .catch((error) => {
-    const errorMessage = error.message;
-    alert(errorMessage)
-  });
-
+      try {
+          const loginUserFromDatabase = await loginUser({
+              email: email.current.value,
+              password: password.current.value
+          })
+          Swal.fire({
+              title: 'Success!',
+              text: 'Your are Login Successfully',
+              icon: 'success',
+              confirmButtonText: 'Login',
+              confirmButtonColor: '#234e94'
+          })
+              .then((result) => {
+                  if (result.isConfirmed) {
+                      navigate('/Dashboard')
+                  }
+              });
+          console.log('user login ho giya', loginUserFromDatabase);
+          setloading(false)
+      } catch (error) {
+          Swal.fire({
+              title: error,
+              text: 'Please check email & password!',
+              icon: 'error',
+              confirmButtonColor: '#de2323',
+              confirmButtonText: 'Try Again',
+          })
+              .then((result) => {
+                  if (result.isConfirmed) {
+                      // navigate('/dashbord')
+                  }
+              });
+          setloading(false)
+      }
   };
 
 
@@ -51,15 +61,9 @@ querySnapshot.forEach((doc) => {
     <>
     <div className="container">
   <h3>LOGIN</h3>
-  <form onSubmit={handleSubmit(LoginUserFromFirebase)}>
-    <input className='text-white' type="email" placeholder="Email" required="" {...register("email", { required: true })} />
-    {errors.email && (
-          <span className="text-red-600">Email is required</span>
-        )}
-    <input className='text-white' type="password" placeholder="Password" required="" {...register("password", { required: true })} />
-    {errors.password && (
-          <span className="text-red-600">Password is required</span>
-        )}
+  <form onSubmit={loginUserFunc}>
+    <input className='text-white' type="email" placeholder="Email" required=""  ref={email} />
+    <input className='text-white' type="password" placeholder="Password" required=""  ref={password} />
         <br />
         <br />
     <button style={{
@@ -77,3 +81,6 @@ querySnapshot.forEach((doc) => {
 }
 
 export default Login
+
+
+// LOGIN COMPLETED

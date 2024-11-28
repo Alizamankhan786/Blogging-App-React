@@ -3,71 +3,65 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from '../config/firebase/firebaseconfig';
 import Card from '../Components/Card';
 import { json, useNavigate } from 'react-router-dom';
+import { Button, CircularProgress, Typography } from '@mui/material';
 
 function Home() {
 
-  const [homeCardData , setHomeCardData] = useState([]);
-
-  const navigate = useNavigate();
-
-  const getData = async () => {
-    const querySnapshot = await getDocs(collection(db, "userblogs"));
-    querySnapshot.forEach((doc) => {
-      homeData.push(doc.data());
-      setHomeCardData([...homeCardData]);
-      console.log(homeCardData);
-    });
-  };
-
-
+  const [allBlogs, setallBlogs] = useState([])
 
   useEffect(() => {
-    getData();
-  } , [])
+    async function getAllBlogs() {
+      let getAllDataFromDb = await getAllData("blogs")
+      setallBlogs(getAllDataFromDb)
+    }
+    getAllBlogs()
+    console.log(allBlogs);
+  }, [])
 
+  const [like, setlike] = useState(null)
 
-  const singleBlog = (index) => {
-    console.log(index);
-    console.log(homeCardData[index]);
-
-    let storeSingleBlog = [];
-
-    storeSingleBlog.push(homeCardData[index]);
-    localStorage.setItem('userSingleBlog' , JSON.stringify(storeSingleBlogToLocalStore));
-    navigate("/profile");
-    
-    
-
+  function likeFunc() {
+    alert('this function is comming soon')
   }
+
 
   return (
     <>
     <h1 className='text-center mt-4 font-bold'>Good Morning Readers!</h1>
+    <section className='container mx-auto p-2'>
+        <Typography variant='h3' fontWeight='bold' className='p-2'>All Blogs</Typography>
+        <hr />
+        <div>
+          {allBlogs.length > 0 ? <h1>{allBlogs.map((item, index) => (
+            <div key={index} className='flex flex-col mt-3'>
+              <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+                <div className="flex items-center p-4">
+                  <img
+                    src=''
+                    alt=""
+                    className="w-14 h-14 rounded-full border-2 border-gray-300 mr-4 object-cover"
+                  />
+                  <div>
+                    <h2 className="text-xl font-semibold">{item.title}</h2>
 
-    <h2 className='text-center mt-3 font-serif'>All Blogs</h2>
-    <div className="mt-5 px-4 md:px-8 lg:px-16">
-        {homeCardData.length !== 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {homeCardData.map((item, index) => (
-              <div className="mt-3" key={index}>
-                <Card
-                  title={item.title}
-                  description={item.description}
-                  date={item.date}
-                  username={item.userName}
-                  image={item.image}
-                  onButtonClick={() => singleBlog(index)}
-                  button={"All From This User"}
-                />
+                    <p className="text-gray-500 text-sm">Time: {item.currentDate} </p>
+
+                  </div>
+                </div>
+                <p className="text-gray-600 p-4 mb-4">{item.article}</p>
+                <div className="flex justify-between items-center p-4 border-t">
+                  <Button variant='contained' onClick={() => likeFunc(1 + like)} className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200">
+                    Like
+                  </Button>
+                  <span className="text-gray-500">Likes: 0</span>
+                </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center my-10">
-            <span className="loading loading-spinner text-warning loading-lg"></span>
-          </div>
-        )}
-      </div>
+            </div>
+          ))}</h1> : <div className='text-center mt-[150px]'>
+            <p><CircularProgress /></p>
+          </div>}
+        </div>
+      </section>
     </>
   )
 }

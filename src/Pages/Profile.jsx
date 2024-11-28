@@ -1,170 +1,112 @@
-import React, { useState } from 'react';
+import { Typography } from '@mui/material';
+import { Button } from 'bootstrap';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth, db } from '../config/firebase/firebasemethods'
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import React, { useEffect, useRef, useState } from 'react';
+import Swal from 'sweetalert2'
+
 
 const Profile = () => {
+  const [SingalUserData, setSingalUserData] = useState([])
 
+  useEffect(() => {
+      onAuthStateChanged(auth, async (user) => {
+          if (user) {
+              try {
+                  const q = query(collection(db, "users"), where("id", "==", user.uid));
+                  const querySnapshot = await getDocs(q);
+                  querySnapshot.forEach((doc) => {
+                      console.log(doc.data());
+                      setSingalUserData(doc.data())
+                  });
+                  console.log(user);
 
-  const [profile, setProfile] = useState({
-  name: "Muhammad Ali Zaman Khan",
-  image: 'https://cdn.pixabay.com/photo/2023/12/11/12/51/lynx-8443540_1280.jpg',
-  });
-  const [editName, setEditName] = useState(false);
-  const [newName, setNewName] = useState(profile.name);
-  const [passwords, setPasswords] = useState({
-    oldPassword: '',
-    newPassword: '',
-    repeatPassword: '',
-  });
+              } catch (error) {
+                  console.log(error);
+              }
+          } else {
+              console.log('user logout ho giya ha');
+          }
+      })
+  }, [])
 
-  // Function to handle name change
-  const handleNameChange = () => {
-    setProfile({ ...profile, name: newName });
-    setEditName(false);
-  };
+  const updatePasswordVal = useRef()
+  // const currentPasswordVal = useRef()
 
-  // image change
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setProfile({ ...profile, image: event.target.result });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  function updatePasswordFunc(event) {
+      event.preventDefault()
+      if (updatePasswordVal.current.value === '') {
+          alert('please enter password')
+      } else {
+          const auth = getAuth();
+          const user = auth.currentUser;
+          const newPassword = updatePasswordVal.current.value;
 
-  //  password change
-  const handlePasswordChange = (e) => {
-    e.preventDefault();
-    if (passwords.newPassword !== passwords.repeatPassword) {
-      alert("New passwords do not match!");
-      return;
-    }
-    
-    alert("Password updated successfully!");
-    setPasswords({ oldPassword: '', newPassword: '', repeatPassword: '' });
-  };
+          updatePassword(user, newPassword)
+              .then(() => {
+                  Swal.fire({
+                      title: 'Success!',
+                      text: 'Password Changed Successfully',
+                      icon: 'success',
+                      confirmButtonText: 'Changed',
+                      confirmButtonColor: '#234e94'
+                  })
+                      .then((result) => {
+                          if (result.isConfirmed) {
+                              // navigate('/dashbord')
+                          }
+                      });
+              }).catch((error) => {
+                  alert(error)
+              });
+
+      }
+      updatePasswordVal.current.value = ''
+      // currentPasswordVal.current.value = ''
+  }
+
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
-      <div className="bg-white shadow-md rounded-lg p-6 w-96">
-        <h1 className="text-xl font-bold mb-4">Profile</h1>
-        <div className="flex flex-col items-center">
-          <div className="relative">
-            <img
-              src={profile.image}
-              alt="Profile"
-              className="w-32 h-32 rounded-full object-cover"
-            />
-            <label
-              htmlFor="imageUpload"
-              className="absolute bottom-0 right-0 p-1 bg-purple-600 text-white rounded-full cursor-pointer"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="1.5"
-                stroke="currentColor"
-                className="w-4 h-4"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M16.862 3.487a2.25 2.25 0 113.182 3.183l-9.193 9.193a4.5 4.5 0 01-2.181 1.185l-3.308.827.828-3.308a4.5 4.5 0 011.184-2.181l9.193-9.193z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M19.5 8.25L15.75 4.5"
-                />
-              </svg>
-            </label>
-            <input
-              type="file"
-              id="imageUpload"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="hidden"
-            />
-          </div>
-          <div className="flex items-center mt-4">
-            {editName ? (
-              <input
-                type="text"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                className="border-b-2 border-purple-600 outline-none"
-                onBlur={handleNameChange}
-                autoFocus
-              />
-            ) : (
-              <>
-                <h2 className="text-xl font-bold">{profile.name}</h2>
-                <button
-                  className="ml-2 text-purple-600"
-                  onClick={() => setEditName(true)}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="1.5"
-                    stroke="currentColor"
-                    className="w-4 h-4"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M16.862 3.487a2.25 2.25 0 113.182 3.183l-9.193 9.193a4.5 4.5 0 01-2.181 1.185l-3.308.827.828-3.308a4.5 4.5 0 011.184-2.181l9.193-9.193z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M19.5 8.25L15.75 4.5"
-                    />
-                  </svg>
-                </button>
-              </>
-            )}
-          </div>
-        </div>
+    <>
 
-        <form className="mt-6" onSubmit={handlePasswordChange}>
-          <label className="block text-sm font-medium text-gray-700">Old Password</label>
-          <input
-            type="password"
-            className="mt-1 block w-full px-3 py-2 border text-white border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-            placeholder="Old password"
-            value={passwords.oldPassword}
-            onChange={(e) => setPasswords({ ...passwords, oldPassword: e.target.value })}
-          />
-          <label className="block mt-4 text-sm font-medium text-gray-700">New Password</label>
-          <input
-            type="password"
-            className="text-white mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-            placeholder="New password"
-            value={passwords.newPassword}
-            onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
-          />
-          <label className="block mt-4 text-sm font-medium text-gray-700">Repeat Password</label>
-          <input
-            type="password"
-            className="text-white mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-            placeholder="Repeat password"
-            value={passwords.repeatPassword}
-            onChange={(e) => setPasswords({ ...passwords, repeatPassword: e.target.value })}
-          />
-          <button
-            type="submit"
-            className="w-full mt-6 bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition duration-200"
-          >
-            Update password
-          </button>
-        </form>
-      </div>
-    </div>
-  );
+<section className="text-gray-600 body-font container mx-auto p-2">
+                <Typography variant='h4' fontWeight='bold' className='p-2 text-black'>Your Profile</Typography>
+                <hr />
+                <div
+                    className="container mx-auto flex px-5 py-14 items-center justify-center flex-col"
+                    bis_skin_checked={1}
+                >
+                    <h1 className="title-font sm:text-4xl text-3xl mb-4 font-medium text-gray-900">
+                        {SingalUserData.fullname}
+                    </h1>
+                    <img
+                        className="lg:w-2/6 md:w-3/6 w-5/6 mb-10 object-cover object-center rounded"
+                        alt="hero"
+                        src={SingalUserData.userProfile}
+                    />
+                    <div className="text-center container lg:w-2/3 w-full" bis_skin_checked={1}>
+
+                        <div className='flex justify-center'>
+                            <form onSubmit={updatePasswordFunc} className='flex flex-col gap-3'>
+                            <input
+                            ref={updatePasswordVal}
+                            type="text"
+                            placeholder="Enter New Password"
+                            required
+                            className="border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-[350px] text-white bg-gray-800"/>
+
+                                <button style={{
+                                  borderRadius: "30px",
+                                }} type='submit' variant='contained' color='primary'>Update Password</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+    </>
+  )
+
 };
 
 export default Profile;
